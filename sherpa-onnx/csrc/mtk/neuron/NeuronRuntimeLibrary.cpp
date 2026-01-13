@@ -36,6 +36,9 @@
 #include "sherpa-onnx/csrc/mtk/neuron/NeuronRuntimeLibrary.h"
 #include "sherpa-onnx/csrc/mtk/common/Log.h"
 
+#include <cstdlib>  // for std::getenv
+#include <vector>
+
 namespace mtk::neuropilot {
 
 NeuronRuntimeLibrary::NeuronRuntimeLibrary() { Initialize(); }
@@ -43,27 +46,48 @@ NeuronRuntimeLibrary::NeuronRuntimeLibrary() { Initialize(); }
 NeuronRuntimeLibrary::~NeuronRuntimeLibrary() {}
 
 bool NeuronRuntimeLibrary::Initialize() {
-    // Try loading from various paths - needed for Android namespace restrictions
-    // MTK devices may have chip-specific paths like /vendor/lib64/mt8189/
-    static const std::string libraries[] = {
-        // Try chip-specific paths first (common on newer MTK devices)
-        "/vendor/lib64/mt8189/libneuron_runtime.8.so",
-        "/vendor/lib64/mt8189/libneuron_runtime.so",
-        "/vendor/lib64/mt8195/libneuron_runtime.8.so",
-        "/vendor/lib64/mt8195/libneuron_runtime.so",
-        "/vendor/lib64/mt8188/libneuron_runtime.8.so",
-        "/vendor/lib64/mt8188/libneuron_runtime.so",
-        // Try standard vendor paths
-        "/vendor/lib64/libneuron_runtime.8.so",
-        "/vendor/lib64/libneuron_runtime.so",
-        "/vendor/lib/libneuron_runtime.8.so",
-        "/vendor/lib/libneuron_runtime.so",
-        // Then try default names (for LD_LIBRARY_PATH or system-linked)
-        "libneuron_runtime.8.so",
-        "libneuron_runtime.7.so",
-        "libneuron_runtime.6.so",
-        "libneuron_runtime.so",
-    };
+    // Build library search list with priority order:
+    // 1. Environment variable NEURON_RUNTIME_PATH (highest priority)
+    // 2. Current directory libraries (for bundling with app)
+    // 3. Chip-specific system paths
+    // 4. Standard vendor paths
+    // 5. Default names (for LD_LIBRARY_PATH)
+
+    std::vector<std::string> libraries;
+
+    // 1. Check environment variable first
+    const char* env_path = std::getenv("NEURON_RUNTIME_PATH");
+    if (env_path != nullptr && strlen(env_path) > 0) {
+        LOG(INFO) << "Using NEURON_RUNTIME_PATH: " << env_path;
+        libraries.push_back(env_path);
+    }
+
+    // 2. Try current directory first (for bundled libraries)
+    // This allows users to place libneuron_runtime.so alongside the executable
+    libraries.push_back("./libneuron_runtime.8.so");
+    libraries.push_back("./libneuron_runtime.7.so");
+    libraries.push_back("./libneuron_runtime.6.so");
+    libraries.push_back("./libneuron_runtime.so");
+
+    // 3. Try chip-specific paths (common on newer MTK devices)
+    libraries.push_back("/vendor/lib64/mt8189/libneuron_runtime.8.so");
+    libraries.push_back("/vendor/lib64/mt8189/libneuron_runtime.so");
+    libraries.push_back("/vendor/lib64/mt8195/libneuron_runtime.8.so");
+    libraries.push_back("/vendor/lib64/mt8195/libneuron_runtime.so");
+    libraries.push_back("/vendor/lib64/mt8188/libneuron_runtime.8.so");
+    libraries.push_back("/vendor/lib64/mt8188/libneuron_runtime.so");
+
+    // 4. Try standard vendor paths
+    libraries.push_back("/vendor/lib64/libneuron_runtime.8.so");
+    libraries.push_back("/vendor/lib64/libneuron_runtime.so");
+    libraries.push_back("/vendor/lib/libneuron_runtime.8.so");
+    libraries.push_back("/vendor/lib/libneuron_runtime.so");
+
+    // 5. Try default names (for LD_LIBRARY_PATH or system-linked)
+    libraries.push_back("libneuron_runtime.8.so");
+    libraries.push_back("libneuron_runtime.7.so");
+    libraries.push_back("libneuron_runtime.6.so");
+    libraries.push_back("libneuron_runtime.so");
 
     for (const auto& lib : libraries) {
         auto loader = SharedLib::Load(lib);
@@ -76,6 +100,14 @@ bool NeuronRuntimeLibrary::Initialize() {
 
     if (UNLIKELY(mSharedLib == nullptr)) {
         LOG(ERROR) << "Load Neuron runtime shared library failed.";
+        LOG(ERROR) << "Searched in following locations (in order):";
+        for (const auto& lib : libraries) {
+            LOG(ERROR) << "  - " << lib;
+        }
+        LOG(ERROR) << "You can:";
+        LOG(ERROR) << "  1. Set environment variable: export NEURON_RUNTIME_PATH=/path/to/libneuron_runtime.so";
+        LOG(ERROR) << "  2. Place libneuron_runtime.so in the same directory as the executable";
+        LOG(ERROR) << "  3. Ensure system library is accessible";
         return false;
     }
 
