@@ -62,6 +62,7 @@ option(SHERPA_ONNX_BUILD_C_API_EXAMPLES "Whether to enable C API examples" ${SUG
 option(SHERPA_ONNX_ENABLE_RKNN "Whether to build for RKNN NPU " OFF)
 option(SHERPA_ONNX_ENABLE_ASCEND_NPU "Whether to build for Ascend NPU " OFF)
 option(SHERPA_ONNX_ENABLE_QNN "Whether to build for Qualcomm NPU" OFF)
+option(SHERPA_ONNX_ENABLE_MTK "Whether to build for MTK NeuroPilot NPU" OFF)
 
 set(SHERPA_ONNX_LINUX_ARM64_GPU_ONNXRUNTIME_VERSION "1.11.0" CACHE STRING "Used only for Linux ARM64 GPU. Set to 1.11.0 if you use CUDA 10.2 and cudnn8. Set it to 1.16.0 if you use CUDA 11.4 and cudnn8. Set it to 1.18.0 if you use CUDA 12.2 and cudnn8. Set it to 1.18.1 if you use CUDA 12.6 and cudnn9")
 

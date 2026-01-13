@@ -35,7 +35,7 @@ object SimulateStreamingAsr {
             // Please change getOfflineModelConfig() to add new models
             // See https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
             // for a list of available models
-            val asrModelType = 15
+            val asrModelType = 100
             val asrRuleFsts: String?
             asrRuleFsts = null
             Log.i(TAG, "Select model type $asrModelType for ASR")

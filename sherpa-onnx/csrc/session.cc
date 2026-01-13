@@ -239,6 +239,11 @@ Ort::SessionOptions GetSessionOptionsImpl(
 #endif
       break;
     }
+    case Provider::kMTK: {
+      // MTK NeuroPilot NPU uses its own executor
+      // No need to configure onnxruntime provider
+      break;
+    }
   }
   return sess_opts;
 }

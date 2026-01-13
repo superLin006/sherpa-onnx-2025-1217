@@ -40,6 +40,10 @@
 #include "sherpa-onnx/csrc/rknn/offline-recognizer-sense-voice-rknn-impl.h"
 #endif
 
+#if SHERPA_ONNX_ENABLE_MTK
+#include "sherpa-onnx/csrc/offline-recognizer-sense-voice-mtk-impl.h"
+#endif
+
 #if SHERPA_ONNX_ENABLE_ASCEND_NPU
 #include "sherpa-onnx/csrc/ascend/offline-recognizer-paraformer-ascend-impl.h"
 #include "sherpa-onnx/csrc/ascend/offline-recognizer-sense-voice-ascend-impl.h"
@@ -84,6 +88,24 @@ std::unique_ptr<OfflineRecognizerImpl> OfflineRecognizerImpl::Create(
         "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_ASCEND_NPU=ON if "
         "you want to use Ascend NPU. See also "
         "https://k2-fsa.github.io/sherpa/onnx/ascend/install.html");
+    SHERPA_ONNX_EXIT(-1);
+    return nullptr;
+#endif
+  }
+
+  if (config.model_config.provider == "mtk") {
+#if SHERPA_ONNX_ENABLE_MTK
+    if (config.model_config.sense_voice.model.empty()) {
+      SHERPA_ONNX_LOGE(
+          "Only SenseVoice models are currently supported "
+          "by MTK NPU for non-streaming ASR. Fallback to CPU");
+    } else if (!config.model_config.sense_voice.model.empty()) {
+      return std::make_unique<OfflineRecognizerSenseVoiceMtkImpl>(config);
+    }
+#else
+    SHERPA_ONNX_LOGE(
+        "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_MTK=ON if you "
+        "want to use MTK NPU.");
     SHERPA_ONNX_EXIT(-1);
     return nullptr;
 #endif
@@ -294,6 +316,24 @@ std::unique_ptr<OfflineRecognizerImpl> OfflineRecognizerImpl::Create(
         "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_RKNN=ON if you "
         "want to use rknn. See also "
         "https://k2-fsa.github.io/sherpa/onnx/rknn/install.html");
+    SHERPA_ONNX_EXIT(-1);
+    return nullptr;
+#endif
+  }
+
+  if (config.model_config.provider == "mtk") {
+#if SHERPA_ONNX_ENABLE_MTK
+    if (config.model_config.sense_voice.model.empty()) {
+      SHERPA_ONNX_LOGE(
+          "Only SenseVoice models are currently supported "
+          "by MTK NPU for non-streaming ASR. Fallback to CPU");
+    } else if (!config.model_config.sense_voice.model.empty()) {
+      return std::make_unique<OfflineRecognizerSenseVoiceMtkImpl>(mgr, config);
+    }
+#else
+    SHERPA_ONNX_LOGE(
+        "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_MTK=ON if you "
+        "want to use MTK NPU.");
     SHERPA_ONNX_EXIT(-1);
     return nullptr;
 #endif

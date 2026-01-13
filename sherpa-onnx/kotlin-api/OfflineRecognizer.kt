@@ -746,6 +746,18 @@ fun getOfflineModelConfig(type: Int): OfflineModelConfig? {
                 tokens = "$modelDir/tokens.txt",
             )
         }
+
+        100 -> {
+            val modelDir = "sense-voice-rknn"  // 👈 你的模型目录名
+            return OfflineModelConfig(
+                senseVoice = OfflineSenseVoiceModelConfig(
+                    model = "$modelDir/model-10-seconds.rknn",  // 👈 RKNN 模型
+                ),
+                tokens = "$modelDir/tokens.txt",
+                provider = "rknn",      // 👈 关键：指定 RKNN provider
+                numThreads = 1,         // 👈 RKNN 模式下使用 1 线程
+            )
+        }
     }
     return null
 }

@@ -198,6 +198,15 @@ if(SHERPA_ONNX_ENABLE_RKNN OR SHERPA_ONNX_ENABLE_ASCEND_NPU)
   )
 endif()
 
+if(SHERPA_ONNX_ENABLE_MTK)
+  list(APPEND sources
+    ./mtk/mtk-npu-memory.cc
+    ./mtk/mtk-npu-executor.cc
+    ./mtk/offline-sense-voice-model-mtk.cc
+    ./mtk/neuron/NeuronRuntimeLibrary.cpp
+  )
+endif()
+
 if(SHERPA_ONNX_ENABLE_ASCEND_NPU)
   list(APPEND sources
     ./ascend/offline-paraformer-model-ascend.cc
@@ -330,6 +339,11 @@ endif()
 
 if(SHERPA_ONNX_ENABLE_QNN)
   target_include_directories(sherpa-onnx-core PRIVATE ${QNN_SDK_ROOT}/include/QNN)
+endif()
+
+if(SHERPA_ONNX_ENABLE_MTK)
+  message(STATUS "Building with MTK NPU support (dynamic loading)")
+  target_compile_definitions(sherpa-onnx-core PRIVATE SHERPA_ONNX_ENABLE_MTK=1)
 endif()
 
 if(TARGET onnxruntime)
