@@ -70,6 +70,47 @@ class MtkNpuExecutor::Impl {
     return true;
   }
 
+  bool Initialize(const void* model_buffer, size_t model_size,
+                  const std::vector<std::vector<uint32_t>>& input_shapes,
+                  const std::vector<std::vector<uint32_t>>& output_shapes,
+                  int input_type,
+                  int output_type,
+                  const std::string& options) {
+    input_shapes_ = input_shapes;
+    output_shapes_ = output_shapes;
+
+    SHERPA_ONNX_LOGI("MTK NPU Executor initializing from memory buffer (size: %zu bytes)", model_size);
+
+    // Initialize NeuronRuntimeLibrary (dynamically loads libneuron_runtime.so)
+    neuron_lib_ = std::make_unique<mtk::neuropilot::NeuronRuntimeLibrary>();
+
+    // Create runtime with options
+    int ret;
+    if (!options.empty()) {
+      ret = neuron_lib_->CreateWithOptions(options.c_str(), nullptr, &runtime_);
+    } else {
+      ret = neuron_lib_->Create(nullptr, &runtime_);
+    }
+
+    if (ret != 0 || runtime_ == nullptr) {
+      SHERPA_ONNX_LOGE("Failed to create Neuron runtime: %d", ret);
+      return false;
+    }
+
+    // Load DLA model from memory buffer
+    ret = neuron_lib_->LoadNetworkFromBuffer(runtime_, model_buffer, model_size);
+    if (ret != 0) {
+      SHERPA_ONNX_LOGE("Failed to load DLA from memory buffer, error: %d", ret);
+      return false;
+    }
+
+    // Pre-allocate buffers
+    AllocateBuffers();
+
+    SHERPA_ONNX_LOGI("MTK NPU Executor initialized successfully from memory");
+    return true;
+  }
+
   bool RunForMultipleInputsOutputs(const std::vector<MtkTensorBuffer>& inputs,
                                    const std::vector<MtkTensorBuffer>& outputs) {
     if (!neuron_lib_ || !runtime_) {
@@ -173,6 +214,17 @@ bool MtkNpuExecutor::Initialize(const std::string& model_path,
                                 int output_type,
                                 const std::string& options) {
   is_initialized_ = impl_->Initialize(model_path, input_shapes, output_shapes,
+                                       input_type, output_type, options);
+  return is_initialized_;
+}
+
+bool MtkNpuExecutor::Initialize(const void* model_buffer, size_t model_size,
+                                const std::vector<std::vector<uint32_t>>& input_shapes,
+                                const std::vector<std::vector<uint32_t>>& output_shapes,
+                                int input_type,
+                                int output_type,
+                                const std::string& options) {
+  is_initialized_ = impl_->Initialize(model_buffer, model_size, input_shapes, output_shapes,
                                        input_type, output_type, options);
   return is_initialized_;
 }

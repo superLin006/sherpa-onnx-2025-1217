@@ -74,6 +74,13 @@ public:
         return mFnNeuronRuntime_loadNetworkFromFile(runtime, pathToDlaFile);
     }
 
+    int LoadNetworkFromBuffer(void* runtime, const void* buffer, size_t size) {
+        if (UNLIKELY(mFnNeuronRuntime_loadNetworkFromBuffer == nullptr)) {
+            return -1;
+        }
+        return mFnNeuronRuntime_loadNetworkFromBuffer(runtime, buffer, size);
+    }
+
     void Release(void* runtime) {
         if (UNLIKELY(mFnNeuronRuntime_release == nullptr)) {
             return;
@@ -156,6 +163,7 @@ private:
     INIT_FUNC(NeuronRuntime_create)
     INIT_FUNC(NeuronRuntime_create_with_options)
     INIT_FUNC(NeuronRuntime_loadNetworkFromFile)
+    INIT_FUNC(NeuronRuntime_loadNetworkFromBuffer)
     INIT_FUNC(NeuronRuntime_release)
     INIT_FUNC(NeuronRuntime_setInputShape)
     INIT_FUNC(NeuronRuntime_setInput)

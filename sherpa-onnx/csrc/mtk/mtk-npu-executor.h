@@ -45,6 +45,14 @@ class MtkNpuExecutor {
                   int output_type,
                   const std::string& options = "");
 
+  // Initialize from memory buffer
+  bool Initialize(const void* model_buffer, size_t model_size,
+                  const std::vector<std::vector<uint32_t>>& input_shapes,
+                  const std::vector<std::vector<uint32_t>>& output_shapes,
+                  int input_type,
+                  int output_type,
+                  const std::string& options = "");
+
   // Run inference with multiple inputs and outputs
   bool RunForMultipleInputsOutputs(const std::vector<MtkTensorBuffer>& inputs,
                                    const std::vector<MtkTensorBuffer>& outputs);

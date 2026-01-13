@@ -84,6 +84,7 @@ bool NeuronRuntimeLibrary::Initialize() {
     LOAD(NeuronRuntime_create, NeuronRuntime_create)
     LOAD(NeuronRuntime_create_with_options, NeuronRuntime_create_with_options)
     LOAD(NeuronRuntime_loadNetworkFromFile, NeuronRuntime_loadNetworkFromFile)
+    LOAD(NeuronRuntime_loadNetworkFromBuffer, NeuronRuntime_loadNetworkFromBuffer)
     LOAD(NeuronRuntime_release, NeuronRuntime_release)
     LOAD(NeuronRuntime_setInputShape, NeuronRuntime_setInputShape)
     LOAD(NeuronRuntime_setInput, NeuronRuntime_setInput)

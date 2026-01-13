@@ -11,6 +11,15 @@
 #include <utility>
 #include <vector>
 
+#if __ANDROID_API__ >= 9
+#include "android/asset_manager.h"
+#include "android/asset_manager_jni.h"
+#endif
+
+#if __OHOS__
+#include "rawfile/raw_file_manager.h"
+#endif
+
 #include "sherpa-onnx/csrc/file-utils.h"
 #include "sherpa-onnx/csrc/log.h"
 #include "sherpa-onnx/csrc/mtk/macros.h"
@@ -32,14 +41,14 @@ class OfflineSenseVoiceModelMtk::Impl {
 #if __ANDROID_API__ >= 9
   Impl(AAssetManager* mgr, const OfflineModelConfig& config)
       : config_(config), asset_manager_(mgr) {
-    Init(config);
+    Init(mgr, config);
   }
 #endif
 
 #if __OHOS__
   Impl(NativeResourceManager* mgr, const OfflineModelConfig& config)
       : config_(config), resource_manager_(mgr) {
-    Init(config);
+    Init(mgr, config);
   }
 #endif
 
@@ -153,6 +162,114 @@ class OfflineSenseVoiceModelMtk::Impl {
 
     SHERPA_ONNX_LOGI("MTK SenseVoice model loaded successfully");
   }
+
+#if __ANDROID_API__ >= 9
+  void Init(AAssetManager* mgr, const OfflineModelConfig& config) {
+    // Initialize metadata
+    InitMetaData();
+
+    // Get model path
+    std::string model_path = config.sense_voice.model;
+    SHERPA_ONNX_LOGI("Loading MTK SenseVoice model from assets: %s", model_path.c_str());
+
+    // Read model file from assets
+    auto buf = ReadFile(mgr, model_path);
+    SHERPA_ONNX_LOGI("Read DLA model from assets, size: %zu bytes", buf.size());
+
+    if (buf.empty()) {
+      SHERPA_ONNX_LOGE("Failed to read model from assets: %s", model_path.c_str());
+      return;
+    }
+
+    // Create executor
+    executor_ = std::make_unique<MtkNpuExecutor>("sensevoice_mtk");
+
+    // Define input/output shapes for SenseVoice model
+    // Input 0: Audio features [1, 166, 560]
+    // Input 1-4: prompt IDs [1]
+    // Output: CTC logits [1, 170, 25055]
+    std::vector<std::vector<uint32_t>> input_shapes = {
+        {1, kModelInputFrames, kInputFeatDim},  // Audio features
+        {1},  // language_id
+        {1},  // event_id
+        {1},  // event_type_id
+        {1}   // text_norm_id
+    };
+
+    std::vector<std::vector<uint32_t>> output_shapes = {
+        {1, kOutputFrames, kVocabSize}  // CTC logits
+    };
+
+    bool success = executor_->Initialize(
+        buf.data(),
+        buf.size(),
+        input_shapes,
+        output_shapes,
+        NEURON_TENSOR_FLOAT32,
+        NEURON_TENSOR_FLOAT32);
+
+    if (!success) {
+      SHERPA_ONNX_LOGE("Failed to initialize MTK NPU executor from assets");
+      return;
+    }
+
+    SHERPA_ONNX_LOGI("MTK SenseVoice model loaded successfully from assets");
+  }
+#endif
+
+#if __OHOS__
+  void Init(NativeResourceManager* mgr, const OfflineModelConfig& config) {
+    // Initialize metadata
+    InitMetaData();
+
+    // Get model path
+    std::string model_path = config.sense_voice.model;
+    SHERPA_ONNX_LOGI("Loading MTK SenseVoice model from rawfile: %s", model_path.c_str());
+
+    // Read model file from rawfile
+    auto buf = ReadFile(mgr, model_path);
+    SHERPA_ONNX_LOGI("Read DLA model from rawfile, size: %zu bytes", buf.size());
+
+    if (buf.empty()) {
+      SHERPA_ONNX_LOGE("Failed to read model from rawfile: %s", model_path.c_str());
+      return;
+    }
+
+    // Create executor
+    executor_ = std::make_unique<MtkNpuExecutor>("sensevoice_mtk");
+
+    // Define input/output shapes for SenseVoice model
+    // Input 0: Audio features [1, 166, 560]
+    // Input 1-4: prompt IDs [1]
+    // Output: CTC logits [1, 170, 25055]
+    std::vector<std::vector<uint32_t>> input_shapes = {
+        {1, kModelInputFrames, kInputFeatDim},  // Audio features
+        {1},  // language_id
+        {1},  // event_id
+        {1},  // event_type_id
+        {1}   // text_norm_id
+    };
+
+    std::vector<std::vector<uint32_t>> output_shapes = {
+        {1, kOutputFrames, kVocabSize}  // CTC logits
+    };
+
+    bool success = executor_->Initialize(
+        buf.data(),
+        buf.size(),
+        input_shapes,
+        output_shapes,
+        NEURON_TENSOR_FLOAT32,
+        NEURON_TENSOR_FLOAT32);
+
+    if (!success) {
+      SHERPA_ONNX_LOGE("Failed to initialize MTK NPU executor from rawfile");
+      return;
+    }
+
+    SHERPA_ONNX_LOGI("MTK SenseVoice model loaded successfully from rawfile");
+  }
+#endif
 
   void InitMetaData() {
     // Initialize SenseVoice model metadata
