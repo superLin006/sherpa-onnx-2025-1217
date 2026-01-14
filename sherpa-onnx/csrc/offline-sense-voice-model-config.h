@@ -18,9 +18,9 @@ struct OfflineSenseVoiceModelConfig {
   //  zh, en, ja, ko, yue, auto
   std::string language = "auto";
 
-  // true to use inverse text normalization
-  // false to not use inverse text normalization
-  bool use_itn = false;
+  // true to use inverse text normalization (with punctuation)
+  // false to not use inverse text normalization (without punctuation)
+  bool use_itn = true;  // Default: enable punctuation output
 
   OfflineSenseVoiceModelConfig() = default;
   OfflineSenseVoiceModelConfig(const std::string &model,
