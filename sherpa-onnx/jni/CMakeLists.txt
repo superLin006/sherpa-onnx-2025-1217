@@ -49,3 +49,15 @@ target_compile_definitions(sherpa-onnx-jni PRIVATE SHERPA_ONNX_BUILD_MAIN_LIB=1)
 
 target_link_libraries(sherpa-onnx-jni sherpa-onnx-core)
 install(TARGETS sherpa-onnx-jni DESTINATION lib)
+
+# ----------------------------------------------------------------------------
+# libasr_jni.so — slim wrapper for com.xbh.usbcloneclient.MtkAsrWrapper.
+# Built only when MTK backend is enabled.
+# ----------------------------------------------------------------------------
+if(SHERPA_ONNX_ENABLE_MTK)
+  add_library(asr_jni SHARED mtk-asr-jni.cc)
+  target_compile_definitions(asr_jni PRIVATE SHERPA_ONNX_BUILD_SHARED_LIBS=1)
+  target_compile_definitions(asr_jni PRIVATE SHERPA_ONNX_BUILD_MAIN_LIB=1)
+  target_link_libraries(asr_jni sherpa-onnx-core)
+  install(TARGETS asr_jni DESTINATION lib)
+endif()

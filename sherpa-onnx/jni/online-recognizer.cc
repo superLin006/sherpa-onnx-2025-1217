@@ -87,6 +87,10 @@ OnlineModelConfig GetOnlineModelConfig(JNIEnv *env, jclass model_config_cls,
   SHERPA_ONNX_JNI_READ_STRING(ans.bpe_vocab, bpeVocab, model_config_cls,
                               model_config);
 
+  SHERPA_ONNX_JNI_READ_STRING(ans.provider_config.mtk_decoder_embedding,
+                              mtkDecoderEmbedding, model_config_cls,
+                              model_config);
+
   *ok = true;
   return ans;
 }
