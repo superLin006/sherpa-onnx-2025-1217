@@ -204,6 +204,10 @@ if(SHERPA_ONNX_ENABLE_MTK)
     ./mtk/mtk-npu-executor.cc
     ./mtk/offline-sense-voice-model-mtk.cc
     ./mtk/neuron/NeuronRuntimeLibrary.cpp
+    ./mtk/online-stream-mtk.cc
+    ./mtk/online-zipformer-transducer-model-mtk.cc
+    ./mtk/online-transducer-greedy-search-decoder-mtk.cc
+    ./mtk/online-transducer-modified-beam-search-decoder-mtk.cc
   )
 endif()
 

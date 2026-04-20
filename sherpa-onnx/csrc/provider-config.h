@@ -71,6 +71,11 @@ struct ProviderConfig {
   int32_t device = 0;
   // device only used for cuda and trt
 
+  // MTK-specific: path to decoder embedding weight file (.npy)
+  // Required when provider=mtk and using zipformer transducer models,
+  // because the MTK NPU decoder does not include the embedding layer.
+  std::string mtk_decoder_embedding;
+
   ProviderConfig() = default;
   ProviderConfig(const std::string &provider, int32_t device)
       : provider(provider), device(device) {}

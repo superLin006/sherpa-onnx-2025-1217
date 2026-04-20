@@ -110,6 +110,9 @@ void ProviderConfig::Register(ParseOptions *po) {
   po->Register("device", &device, "GPU device index for CUDA and Trt EP");
   po->Register("provider", &provider,
                "Specify a provider to use: cpu, cuda, coreml");
+  po->Register("mtk-decoder-embedding", &mtk_decoder_embedding,
+               "Path to decoder embedding weight file (.npy). "
+               "Required when provider=mtk for zipformer transducer models.");
 }
 
 bool ProviderConfig::Validate() const {
@@ -136,7 +139,8 @@ std::string ProviderConfig::ToString() const {
   os << "device=" << device << ", ";
   os << "provider=\"" << provider << "\", ";
   os << "cuda_config=" << cuda_config.ToString() << ", ";
-  os << "trt_config=" << trt_config.ToString() << ")";
+  os << "trt_config=" << trt_config.ToString() << ", ";
+  os << "mtk_decoder_embedding=\"" << mtk_decoder_embedding << "\")";
   return os.str();
 }
 
