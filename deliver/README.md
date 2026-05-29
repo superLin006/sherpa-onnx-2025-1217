@@ -29,6 +29,10 @@ deliver/
 ├── bin/
 │   ├── sense-voice-sophon-pcm-asr     # ASR 测试程序（WAV → 文字）
 │   └── chattts-sophon-cxx-api         # TTS 测试程序（文字 → WAV）
+├── include/
+│   └── sherpa-onnx/c-api/
+│       ├── cxx-api.h                  # ← 上层应用 #include 这个（C++ 接口）
+│       └── c-api.h                    # 底层 C 接口（一般不直接用）
 ├── lib/
 │   ├── libsherpa-onnx-cxx-api.so      # ← 上层应用链接这两个
 │   ├── libsherpa-onnx-c-api.so
@@ -108,18 +112,32 @@ sh test_data/run_tts.sh "流式合成，边生成边输出。" --stream
 
 ## 四、给开发人员：如何在自己的程序里调用
 
-SDK 对外只有一个头文件 + 两个 `.so`。链接方式：
+SDK 对外只有头文件 + 两个 `.so`，本包已附带（见 `include/` 与 `lib/`）。链接方式：
 
 ```cmake
-target_include_directories(your_app PRIVATE "<sdk>/include")
+# 把交付包根目录当作 SDK 根（含 include/ 和 lib/）
+set(SDK_DIR /path/to/deliver)
+target_include_directories(your_app PRIVATE "${SDK_DIR}/include")
 target_link_libraries(your_app PRIVATE
-    "<sdk>/lib/libsherpa-onnx-cxx-api.so"
-    "<sdk>/lib/libsherpa-onnx-c-api.so")
+    "${SDK_DIR}/lib/libsherpa-onnx-cxx-api.so"
+    "${SDK_DIR}/lib/libsherpa-onnx-c-api.so")
 # 运行时确保 LD_LIBRARY_PATH 含 lib/ 和 /opt/sophon/libsophon-current/lib
 ```
 
-> 注：`include/` 头文件随 sherpa-onnx 源码 `install/` 一同产出；本测试包未附带头文件，
-> 集成开发时用编译产出的 `install/include/sherpa-onnx/c-api/cxx-api.h`。
+源码里这样引用头文件（注意带 `sherpa-onnx/c-api/` 前缀）：
+
+```cpp
+#include "sherpa-onnx/c-api/cxx-api.h"   // C++ 接口（推荐）
+```
+
+一行编译示例（aarch64，板卡本地或交叉）：
+
+```bash
+g++ -std=c++17 your_app.cc -o your_app \
+    -I deliver/include \
+    -L deliver/lib -lsherpa-onnx-cxx-api -lsherpa-onnx-c-api \
+    -Wl,-rpath,'$ORIGIN/lib'
+```
 
 ### 4.1 ASR：音频 → 文字
 
