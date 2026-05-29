@@ -211,6 +211,12 @@ if(SHERPA_ONNX_ENABLE_MTK)
   )
 endif()
 
+if(SHERPA_ONNX_ENABLE_SOPHON)
+  list(APPEND sources
+    ./sophon/offline-sense-voice-model-sophon.cc
+  )
+endif()
+
 if(SHERPA_ONNX_ENABLE_ASCEND_NPU)
   list(APPEND sources
     ./ascend/offline-paraformer-model-ascend.cc
@@ -348,6 +354,27 @@ endif()
 if(SHERPA_ONNX_ENABLE_MTK)
   message(STATUS "Building with MTK NPU support (dynamic loading)")
   target_compile_definitions(sherpa-onnx-core PRIVATE SHERPA_ONNX_ENABLE_MTK=1)
+endif()
+
+if(SHERPA_ONNX_ENABLE_SOPHON)
+  message(STATUS "Building with Sophon BM1684X TPU support")
+  target_compile_definitions(sherpa-onnx-core PRIVATE SHERPA_ONNX_ENABLE_SOPHON=1)
+  # Sophon SDK layout: ${SHERPA_ONNX_SOPHON_SDK_DIR}/include/{bmruntime_interface.h,bmlib_runtime.h}
+  #                    ${SHERPA_ONNX_SOPHON_SDK_DIR}/lib/{libbmrt.so,libbmlib.so}
+  if(NOT DEFINED SHERPA_ONNX_SOPHON_SDK_DIR AND DEFINED ENV{SHERPA_ONNX_SOPHON_SDK_DIR})
+    set(SHERPA_ONNX_SOPHON_SDK_DIR $ENV{SHERPA_ONNX_SOPHON_SDK_DIR})
+  endif()
+  if(NOT DEFINED SHERPA_ONNX_SOPHON_SDK_DIR)
+    message(FATAL_ERROR
+      "SHERPA_ONNX_ENABLE_SOPHON=ON but SHERPA_ONNX_SOPHON_SDK_DIR is not set. "
+      "Point it at the libsophon SDK (containing include/ and lib/).")
+  endif()
+  message(STATUS "Sophon SDK dir: ${SHERPA_ONNX_SOPHON_SDK_DIR}")
+  target_include_directories(sherpa-onnx-core PRIVATE ${SHERPA_ONNX_SOPHON_SDK_DIR}/include)
+  target_link_libraries(sherpa-onnx-core
+    ${SHERPA_ONNX_SOPHON_SDK_DIR}/lib/libbmrt.so
+    ${SHERPA_ONNX_SOPHON_SDK_DIR}/lib/libbmlib.so
+  )
 endif()
 
 if(TARGET onnxruntime)

@@ -44,6 +44,10 @@
 #include "sherpa-onnx/csrc/offline-recognizer-sense-voice-mtk-impl.h"
 #endif
 
+#if SHERPA_ONNX_ENABLE_SOPHON
+#include "sherpa-onnx/csrc/offline-recognizer-sense-voice-sophon-impl.h"
+#endif
+
 #if SHERPA_ONNX_ENABLE_ASCEND_NPU
 #include "sherpa-onnx/csrc/ascend/offline-recognizer-paraformer-ascend-impl.h"
 #include "sherpa-onnx/csrc/ascend/offline-recognizer-sense-voice-ascend-impl.h"
@@ -106,6 +110,24 @@ std::unique_ptr<OfflineRecognizerImpl> OfflineRecognizerImpl::Create(
     SHERPA_ONNX_LOGE(
         "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_MTK=ON if you "
         "want to use MTK NPU.");
+    SHERPA_ONNX_EXIT(-1);
+    return nullptr;
+#endif
+  }
+
+  if (config.model_config.provider == "sophon") {
+#if SHERPA_ONNX_ENABLE_SOPHON
+    if (!config.model_config.sense_voice.model.empty()) {
+      return std::make_unique<OfflineRecognizerSenseVoiceSophonImpl>(config);
+    } else {
+      SHERPA_ONNX_LOGE(
+          "Only SenseVoice models are currently supported "
+          "by the Sophon BM1684X TPU for non-streaming ASR.");
+    }
+#else
+    SHERPA_ONNX_LOGE(
+        "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_SOPHON=ON if you "
+        "want to use the Sophon BM1684X TPU.");
     SHERPA_ONNX_EXIT(-1);
     return nullptr;
 #endif
@@ -334,6 +356,25 @@ std::unique_ptr<OfflineRecognizerImpl> OfflineRecognizerImpl::Create(
     SHERPA_ONNX_LOGE(
         "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_MTK=ON if you "
         "want to use MTK NPU.");
+    SHERPA_ONNX_EXIT(-1);
+    return nullptr;
+#endif
+  }
+
+  if (config.model_config.provider == "sophon") {
+#if SHERPA_ONNX_ENABLE_SOPHON
+    if (!config.model_config.sense_voice.model.empty()) {
+      return std::make_unique<OfflineRecognizerSenseVoiceSophonImpl>(mgr,
+                                                                     config);
+    } else {
+      SHERPA_ONNX_LOGE(
+          "Only SenseVoice models are currently supported "
+          "by the Sophon BM1684X TPU for non-streaming ASR.");
+    }
+#else
+    SHERPA_ONNX_LOGE(
+        "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_SOPHON=ON if you "
+        "want to use the Sophon BM1684X TPU.");
     SHERPA_ONNX_EXIT(-1);
     return nullptr;
 #endif

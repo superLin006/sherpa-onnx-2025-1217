@@ -22,6 +22,9 @@ struct OfflineSenseVoiceModelConfig {
   // false to not use inverse text normalization (without punctuation)
   bool use_itn = true;  // Default: enable punctuation output
 
+  // Sophon TPU device index (used only by the Sophon BM1684X backend)
+  int32_t tpu_id = 0;
+
   OfflineSenseVoiceModelConfig() = default;
   OfflineSenseVoiceModelConfig(const std::string &model,
                                const std::string &language, bool use_itn)
