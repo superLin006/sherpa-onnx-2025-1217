@@ -45,7 +45,7 @@
 #endif
 
 #if SHERPA_ONNX_ENABLE_SOPHON
-#include "sherpa-onnx/csrc/offline-recognizer-sense-voice-sophon-impl.h"
+#include "sherpa-onnx/csrc/sophon/offline-recognizer-sense-voice-sophon-impl.h"
 #endif
 
 #if SHERPA_ONNX_ENABLE_ASCEND_NPU

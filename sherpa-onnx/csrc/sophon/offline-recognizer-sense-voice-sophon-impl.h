@@ -1,10 +1,10 @@
-// sherpa-onnx/csrc/offline-recognizer-sense-voice-sophon-impl.h
+// sherpa-onnx/csrc/sophon/offline-recognizer-sense-voice-sophon-impl.h
 //
 // Copyright (c)  2024  Xiaomi Corporation
 // Copyright (c)  2026  Sophon BM1684X backend
 
-#ifndef SHERPA_ONNX_CSRC_OFFLINE_RECOGNIZER_SENSE_VOICE_SOPHON_IMPL_H_
-#define SHERPA_ONNX_CSRC_OFFLINE_RECOGNIZER_SENSE_VOICE_SOPHON_IMPL_H_
+#ifndef SHERPA_ONNX_CSRC_SOPHON_OFFLINE_RECOGNIZER_SENSE_VOICE_SOPHON_IMPL_H_
+#define SHERPA_ONNX_CSRC_SOPHON_OFFLINE_RECOGNIZER_SENSE_VOICE_SOPHON_IMPL_H_
 
 #include <memory>
 #include <utility>
@@ -14,9 +14,7 @@
 #include "sherpa-onnx/csrc/offline-model-config.h"
 #include "sherpa-onnx/csrc/offline-recognizer-impl.h"
 #include "sherpa-onnx/csrc/offline-recognizer.h"
-// The MTK CTC greedy decoder is a backend-neutral header-only implementation;
-// reuse it instead of duplicating the same code under sophon/.
-#include "sherpa-onnx/csrc/mtk/offline-ctc-greedy-search-decoder-mtk.h"
+#include "sherpa-onnx/csrc/sophon/offline-ctc-greedy-search-decoder-sophon.h"
 #include "sherpa-onnx/csrc/sophon/offline-sense-voice-model-sophon.h"
 #include "sherpa-onnx/csrc/symbol-table.h"
 
@@ -38,7 +36,7 @@ class OfflineRecognizerSenseVoiceSophonImpl : public OfflineRecognizerImpl {
             config.model_config)) {
     const auto &meta_data = model_->GetModelMetadata();
     if (config.decoding_method == "greedy_search") {
-      decoder_ = std::make_unique<OfflineCtcGreedySearchDecoderMtk>(
+      decoder_ = std::make_unique<OfflineCtcGreedySearchDecoderSophon>(
           meta_data.blank_id);
     } else {
       SHERPA_ONNX_LOGE("Only greedy_search is supported at present. Given %s",
@@ -60,7 +58,7 @@ class OfflineRecognizerSenseVoiceSophonImpl : public OfflineRecognizerImpl {
             mgr, config.model_config)) {
     const auto &meta_data = model_->GetModelMetadata();
     if (config.decoding_method == "greedy_search") {
-      decoder_ = std::make_unique<OfflineCtcGreedySearchDecoderMtk>(
+      decoder_ = std::make_unique<OfflineCtcGreedySearchDecoderSophon>(
           meta_data.blank_id);
     } else {
       SHERPA_ONNX_LOGE("Only greedy_search is supported at present. Given %s",
@@ -135,9 +133,9 @@ class OfflineRecognizerSenseVoiceSophonImpl : public OfflineRecognizerImpl {
   OfflineRecognizerConfig config_;
   SymbolTable symbol_table_;
   std::unique_ptr<OfflineSenseVoiceModelSophon> model_;
-  std::unique_ptr<OfflineCtcGreedySearchDecoderMtk> decoder_;
+  std::unique_ptr<OfflineCtcGreedySearchDecoderSophon> decoder_;
 };
 
 }  // namespace sherpa_onnx
 
-#endif  // SHERPA_ONNX_CSRC_OFFLINE_RECOGNIZER_SENSE_VOICE_SOPHON_IMPL_H_
+#endif  // SHERPA_ONNX_CSRC_SOPHON_OFFLINE_RECOGNIZER_SENSE_VOICE_SOPHON_IMPL_H_
