@@ -166,3 +166,10 @@ toolchains/aarch64-ubuntu2004.toolchain.cmake
 test-sophon/chattts-sophon-cxx-api
 test-sophon/chattts-sophon-tts
 test-sophon/outputs/
+
+# delivery package (large binaries/models regenerated from build + model zoo)
+deliver/bin/
+deliver/lib/
+deliver/models/
+deliver/test_data/*.wav
+*.tar.gz
