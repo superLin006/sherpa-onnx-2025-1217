@@ -163,3 +163,6 @@ scripts/sense-voice/rknn/sensevoice_export/SenseVoiceSmall/
 build-sophon/
 build-sophon-docker.log
 toolchains/aarch64-ubuntu2004.toolchain.cmake
+test-sophon/chattts-sophon-cxx-api
+test-sophon/chattts-sophon-tts
+test-sophon/outputs/

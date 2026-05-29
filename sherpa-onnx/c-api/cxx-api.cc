@@ -425,6 +425,15 @@ OfflineTts OfflineTts::Create(const OfflineTtsConfig &config) {
   c.model.zipvoice.target_rms = config.model.zipvoice.target_rms;
   c.model.zipvoice.guidance_scale = config.model.zipvoice.guidance_scale;
 
+  c.model.chattts.gpt = config.model.chattts.gpt.c_str();
+  c.model.chattts.decoder = config.model.chattts.decoder.c_str();
+  c.model.chattts.vocos = config.model.chattts.vocos.c_str();
+  c.model.chattts.vocab = config.model.chattts.vocab.c_str();
+  c.model.chattts.homophones_map = config.model.chattts.homophones_map.c_str();
+  c.model.chattts.speaker_embedding =
+      config.model.chattts.speaker_embedding.c_str();
+  c.model.chattts.tpu_id = config.model.chattts.tpu_id;
+
   c.model.num_threads = config.model.num_threads;
   c.model.debug = config.model.debug;
   c.model.provider = config.model.provider.c_str();

@@ -54,13 +54,15 @@ public:
                              bool do_normalize = true);
 
     // Streaming TTS: callback is invoked with each PCM chunk as it becomes ready.
-    // chunk_callback(pcm_chunk) is called synchronously from the inference thread.
+    // chunk_callback(pcm_chunk, progress) is called synchronously from the
+    // inference thread; progress is a monotonically increasing estimate in
+    // [0, 1] (1.0 on the final chunk), derived from the GPT decode step.
     // Returns total number of PCM samples generated.
     // do_normalize: apply homophones replacement
     int infer_stream(const std::string& text,
                      const InferParams&  params,
                      const StreamParams& sparams,
-                     std::function<void(const std::vector<float>&)> chunk_callback,
+                     std::function<void(const std::vector<float>&, float)> chunk_callback,
                      bool do_normalize = true);
 
     // Write PCM to WAV file (16-bit, mono)

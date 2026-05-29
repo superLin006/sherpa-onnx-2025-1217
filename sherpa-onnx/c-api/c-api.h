@@ -1074,6 +1074,17 @@ SHERPA_ONNX_API typedef struct SherpaOnnxOfflineTtsZipvoiceModelConfig {
   float guidance_scale;
 } SherpaOnnxOfflineTtsZipvoiceModelConfig;
 
+// ChatTTS on the Sophon BM1684X TPU
+SHERPA_ONNX_API typedef struct SherpaOnnxOfflineTtsChatTtsModelConfig {
+  const char *gpt;
+  const char *decoder;
+  const char *vocos;
+  const char *vocab;
+  const char *homophones_map;
+  const char *speaker_embedding;
+  int32_t tpu_id;
+} SherpaOnnxOfflineTtsChatTtsModelConfig;
+
 SHERPA_ONNX_API typedef struct SherpaOnnxOfflineTtsModelConfig {
   SherpaOnnxOfflineTtsVitsModelConfig vits;
   int32_t num_threads;
@@ -1083,6 +1094,7 @@ SHERPA_ONNX_API typedef struct SherpaOnnxOfflineTtsModelConfig {
   SherpaOnnxOfflineTtsKokoroModelConfig kokoro;
   SherpaOnnxOfflineTtsKittenModelConfig kitten;
   SherpaOnnxOfflineTtsZipvoiceModelConfig zipvoice;
+  SherpaOnnxOfflineTtsChatTtsModelConfig chattts;
 } SherpaOnnxOfflineTtsModelConfig;
 
 SHERPA_ONNX_API typedef struct SherpaOnnxOfflineTtsConfig {

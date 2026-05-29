@@ -202,7 +202,7 @@ std::vector<float> ChatTTS::infer(const std::string& text,
 int ChatTTS::infer_stream(const std::string& text,
                            const InferParams&  params,
                            const StreamParams& sparams,
-                           std::function<void(const std::vector<float>&)> chunk_callback,
+                           std::function<void(const std::vector<float>&, float)> chunk_callback,
                            bool do_normalize) {
     auto& im = *impl_;
 
@@ -310,6 +310,8 @@ int ChatTTS::infer_stream(const std::string& text,
 
     int total_pcm = 0;
     int chunk_idx = 0;
+    // Progress estimate in [0, 1], updated before each emit from the GPT step.
+    float cur_progress = 0.0f;
 
     // Buffer for head-trimming: accumulate first pass_first_n_batches chunks,
     // then find the first non-silent sample and emit everything from there.
@@ -331,7 +333,7 @@ int ChatTTS::infer_stream(const std::string& text,
         head_buf.clear();
         if (!trimmed.empty()) {
             total_pcm += (int)trimmed.size();
-            chunk_callback(trimmed);
+            chunk_callback(trimmed, cur_progress);
         }
     };
 
@@ -350,13 +352,18 @@ int ChatTTS::infer_stream(const std::string& text,
 
             if (chunk.empty()) continue;
 
+            // Estimate progress from the GPT decode step. Cap below 1.0 while
+            // still decoding; the final flush reports 1.0.
+            cur_progress = done ? 1.0f
+                                : std::min(0.99f, (float)step / params.max_new_token);
+
             if (!head_flushed && chunk_idx <= sparams.pass_first_n_batches) {
                 // Accumulate into head buffer instead of emitting
                 head_buf.insert(head_buf.end(), chunk.begin(), chunk.end());
             } else {
                 flush_head();  // emit head buffer (trimmed) on first real chunk
                 total_pcm += (int)chunk.size();
-                chunk_callback(chunk);
+                chunk_callback(chunk, cur_progress);
             }
         }
     }
@@ -372,9 +379,10 @@ int ChatTTS::infer_stream(const std::string& text,
                 if (std::abs(chunk[i]) > 1e-5f) { keep = i+1; break; }
             chunk.resize(keep);
             if (!chunk.empty()) {
+                cur_progress = 1.0f;
                 flush_head();
                 total_pcm += (int)chunk.size();
-                chunk_callback(chunk);
+                chunk_callback(chunk, 1.0f);
             }
         }
     }

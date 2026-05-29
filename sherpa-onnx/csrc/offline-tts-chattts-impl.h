@@ -70,15 +70,13 @@ class OfflineTtsChatTtsImpl : public OfflineTtsImpl {
     if (callback) {
       // Stream chunks to the caller; also accumulate for the return value.
       StreamParams sparams;
-      float total_hint = 0.0f;  // ChatTTS does not expose a progress ratio
       engine_->infer_stream(
           text, params, sparams,
-          [&samples, &callback, &total_hint](const std::vector<float> &chunk) {
+          [&samples, &callback](const std::vector<float> &chunk,
+                                float progress) {
             samples.insert(samples.end(), chunk.begin(), chunk.end());
-            // progress is unknown ahead of time; report a monotonically
-            // increasing placeholder based on produced samples.
-            total_hint += 0.0f;
-            callback(chunk.data(), static_cast<int32_t>(chunk.size()), 1.0f);
+            callback(chunk.data(), static_cast<int32_t>(chunk.size()),
+                     progress);
           },
           /*do_normalize=*/true);
     } else {

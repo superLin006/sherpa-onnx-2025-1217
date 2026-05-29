@@ -440,12 +440,23 @@ struct OfflineTtsZipvoiceModelConfig {
   float guidance_scale = 1.0;
 };
 
+struct OfflineTtsChatTtsModelConfig {
+  std::string gpt;
+  std::string decoder;
+  std::string vocos;
+  std::string vocab;
+  std::string homophones_map;
+  std::string speaker_embedding;  // optional; empty -> built-in default speaker
+  int32_t tpu_id = 0;
+};
+
 struct OfflineTtsModelConfig {
   OfflineTtsVitsModelConfig vits;
   OfflineTtsMatchaModelConfig matcha;
   OfflineTtsKokoroModelConfig kokoro;
   OfflineTtsKittenModelConfig kitten;
   OfflineTtsZipvoiceModelConfig zipvoice;
+  OfflineTtsChatTtsModelConfig chattts;
 
   int32_t num_threads = 1;
   bool debug = false;

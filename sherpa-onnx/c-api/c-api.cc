@@ -1250,6 +1250,21 @@ static sherpa_onnx::OfflineTtsConfig GetOfflineTtsConfig(
   tts_config.model.zipvoice.guidance_scale =
       SHERPA_ONNX_OR(config->model.zipvoice.guidance_scale, 1.0f);
 
+  // chattts (Sophon BM1684X TPU)
+  tts_config.model.chattts.gpt =
+      SHERPA_ONNX_OR(config->model.chattts.gpt, "");
+  tts_config.model.chattts.decoder =
+      SHERPA_ONNX_OR(config->model.chattts.decoder, "");
+  tts_config.model.chattts.vocos =
+      SHERPA_ONNX_OR(config->model.chattts.vocos, "");
+  tts_config.model.chattts.vocab =
+      SHERPA_ONNX_OR(config->model.chattts.vocab, "");
+  tts_config.model.chattts.homophones_map =
+      SHERPA_ONNX_OR(config->model.chattts.homophones_map, "");
+  tts_config.model.chattts.speaker_embedding =
+      SHERPA_ONNX_OR(config->model.chattts.speaker_embedding, "");
+  tts_config.model.chattts.tpu_id = config->model.chattts.tpu_id;
+
   tts_config.model.num_threads = SHERPA_ONNX_OR(config->model.num_threads, 1);
   tts_config.model.debug = config->model.debug;
   tts_config.model.provider = SHERPA_ONNX_OR(config->model.provider, "cpu");
