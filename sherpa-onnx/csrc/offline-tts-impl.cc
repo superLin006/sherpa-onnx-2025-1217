@@ -22,6 +22,10 @@
 #include "sherpa-onnx/csrc/offline-tts-vits-impl.h"
 #include "sherpa-onnx/csrc/offline-tts-zipvoice-impl.h"
 
+#if SHERPA_ONNX_ENABLE_SOPHON
+#include "sherpa-onnx/csrc/offline-tts-chattts-impl.h"
+#endif
+
 namespace sherpa_onnx {
 
 std::vector<int64_t> OfflineTtsImpl::AddBlank(const std::vector<int64_t> &x,
@@ -49,6 +53,15 @@ std::unique_ptr<OfflineTtsImpl> OfflineTtsImpl::Create(
     return std::make_unique<OfflineTtsKokoroImpl>(config);
   } else if (!config.model.kitten.model.empty()) {
     return std::make_unique<OfflineTtsKittenImpl>(config);
+  } else if (!config.model.chattts.gpt.empty()) {
+#if SHERPA_ONNX_ENABLE_SOPHON
+    return std::make_unique<OfflineTtsChatTtsImpl>(config);
+#else
+    SHERPA_ONNX_LOGE(
+        "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_SOPHON=ON to use "
+        "ChatTTS on the Sophon BM1684X TPU.");
+    return {};
+#endif
   }
 
   SHERPA_ONNX_LOGE("Please provide a tts model.");
@@ -70,6 +83,15 @@ std::unique_ptr<OfflineTtsImpl> OfflineTtsImpl::Create(
     return std::make_unique<OfflineTtsKokoroImpl>(mgr, config);
   } else if (!config.model.kitten.model.empty()) {
     return std::make_unique<OfflineTtsKittenImpl>(mgr, config);
+  } else if (!config.model.chattts.gpt.empty()) {
+#if SHERPA_ONNX_ENABLE_SOPHON
+    return std::make_unique<OfflineTtsChatTtsImpl>(mgr, config);
+#else
+    SHERPA_ONNX_LOGE(
+        "Please rebuild sherpa-onnx with -DSHERPA_ONNX_ENABLE_SOPHON=ON to use "
+        "ChatTTS on the Sophon BM1684X TPU.");
+    return {};
+#endif
   }
 
   SHERPA_ONNX_LOGE("Please provide a tts model.");

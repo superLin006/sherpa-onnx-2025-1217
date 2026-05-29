@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Build sherpa-onnx with the Sophon ChatTTS TTS family enabled, inside the
+# sophon-cross-build container (Ubuntu 20.04 / aarch64 GCC 9.4 / glibc 2.31).
+#
+# Run from the host:
+#   docker run --rm -v "$PWD":/repo -v <soc-sdk>:/sdk -w /repo \
+#       sophon-cross-build:latest bash build-chattts-docker.sh
+set -ex
+
+SOPHON_SDK=${SOPHON_SDK:-/sdk}
+CHATTTS_DEPS=${CHATTTS_DEPS:-/repo/build-chattts-deps}
+
+cat > toolchains/aarch64-ubuntu2004.toolchain.cmake <<'EOF'
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
+set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_C_FLAGS "-march=armv8-a" CACHE STRING "c flags")
+set(CMAKE_CXX_FLAGS "-march=armv8-a" CACHE STRING "cxx flags")
+EOF
+
+dir=build-chattts
+mkdir -p "$dir"; cd "$dir"
+DEPS=$PWD/_deps
+
+cmake \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
+  -DFETCHCONTENT_FULLY_DISCONNECTED=ON \
+  -DFETCHCONTENT_SOURCE_DIR_EIGEN=$DEPS/eigen-src \
+  -DFETCHCONTENT_SOURCE_DIR_ESPEAK_NG=$DEPS/espeak_ng-src \
+  -DFETCHCONTENT_SOURCE_DIR_HCLUST_CPP=$DEPS/hclust_cpp-src \
+  -DFETCHCONTENT_SOURCE_DIR_KALDI_DECODER=$DEPS/kaldi_decoder-src \
+  -DFETCHCONTENT_SOURCE_DIR_KALDIFST=$DEPS/kaldifst-src \
+  -DFETCHCONTENT_SOURCE_DIR_KALDI_NATIVE_FBANK=$DEPS/kaldi_native_fbank-src \
+  -DFETCHCONTENT_SOURCE_DIR_KISSFFT=$DEPS/kissfft-src \
+  -DFETCHCONTENT_SOURCE_DIR_ONNXRUNTIME=$DEPS/onnxruntime-src \
+  -DFETCHCONTENT_SOURCE_DIR_OPENFST=$DEPS/openfst-src \
+  -DFETCHCONTENT_SOURCE_DIR_PIPER_PHONEMIZE=$DEPS/piper_phonemize-src \
+  -DFETCHCONTENT_SOURCE_DIR_SIMPLE-SENTENCEPIECE=$DEPS/simple-sentencepiece-src \
+  -DFETCHCONTENT_SOURCE_DIR_CPPINYIN=$DEPS/cppinyin-src \
+  -DCMAKE_INSTALL_PREFIX=./install -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -DSHERPA_ONNX_ENABLE_SOPHON=ON -DSHERPA_ONNX_SOPHON_SDK_DIR="$SOPHON_SDK" \
+  -DSHERPA_ONNX_CHATTTS_DEPS_DIR="$CHATTTS_DEPS" \
+  -DSHERPA_ONNX_ENABLE_TTS=ON \
+  -DSHERPA_ONNX_ENABLE_GPU=OFF -DSHERPA_ONNX_ENABLE_TESTS=OFF -DSHERPA_ONNX_ENABLE_PYTHON=OFF \
+  -DSHERPA_ONNX_ENABLE_CHECK=OFF -DSHERPA_ONNX_ENABLE_PORTAUDIO=OFF -DSHERPA_ONNX_ENABLE_JNI=OFF \
+  -DSHERPA_ONNX_ENABLE_C_API=ON -DSHERPA_ONNX_ENABLE_WEBSOCKET=OFF -DSHERPA_ONNX_ENABLE_BINARY=OFF \
+  -DBUILD_PIPER_PHONMIZE_EXE=OFF -DBUILD_PIPER_PHONMIZE_TESTS=OFF \
+  -DBUILD_ESPEAK_NG_EXE=OFF -DBUILD_ESPEAK_NG_TESTS=OFF \
+  -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-ubuntu2004.toolchain.cmake \
+  ..
+
+make -j"$(nproc)"
+make install/strip
+echo "CHATTTS_BUILD_DONE"
+ls -la install/lib/*.so

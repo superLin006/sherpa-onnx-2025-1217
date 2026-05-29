@@ -215,6 +215,18 @@ if(SHERPA_ONNX_ENABLE_SOPHON)
   list(APPEND sources
     ./sophon/offline-sense-voice-model-sophon.cc
   )
+  if(SHERPA_ONNX_ENABLE_TTS)
+    list(APPEND sources
+      ./offline-tts-chattts-model-config.cc
+      ./sophon/chattts/chattts.cpp
+      ./sophon/chattts/gpt_engine.cpp
+      ./sophon/chattts/decoder_engine.cpp
+      ./sophon/chattts/vocos_engine.cpp
+      ./sophon/chattts/normalizer.cpp
+      ./sophon/chattts/tokenizer.cpp
+      ./sophon/chattts/istft.cpp
+    )
+  endif()
 endif()
 
 if(SHERPA_ONNX_ENABLE_ASCEND_NPU)
@@ -375,6 +387,34 @@ if(SHERPA_ONNX_ENABLE_SOPHON)
     ${SHERPA_ONNX_SOPHON_SDK_DIR}/lib/libbmrt.so
     ${SHERPA_ONNX_SOPHON_SDK_DIR}/lib/libbmlib.so
   )
+
+  if(SHERPA_ONNX_ENABLE_TTS)
+    # ChatTTS engine (csrc/sophon/chattts) needs its own headers on the include
+    # path plus FFTW3 (single precision) and nlohmann/json.
+    # SHERPA_ONNX_CHATTTS_DEPS_DIR must contain:
+    #   fftw/include/fftw3.h, fftw/<arch>/libfftw3f.a
+    #   nlohmann/json.hpp   (i.e. <deps>/ has a 'nlohmann' dir with json.hpp)
+    if(NOT DEFINED SHERPA_ONNX_CHATTTS_DEPS_DIR AND DEFINED ENV{SHERPA_ONNX_CHATTTS_DEPS_DIR})
+      set(SHERPA_ONNX_CHATTTS_DEPS_DIR $ENV{SHERPA_ONNX_CHATTTS_DEPS_DIR})
+    endif()
+    if(NOT DEFINED SHERPA_ONNX_CHATTTS_DEPS_DIR)
+      message(FATAL_ERROR
+        "SHERPA_ONNX_ENABLE_SOPHON + TTS need SHERPA_ONNX_CHATTTS_DEPS_DIR "
+        "(containing fftw/ and nlohmann/json.hpp).")
+    endif()
+    if(NOT DEFINED SHERPA_ONNX_CHATTTS_FFTW_LIB)
+      set(SHERPA_ONNX_CHATTTS_FFTW_LIB
+          ${SHERPA_ONNX_CHATTTS_DEPS_DIR}/fftw/aarch64-linux/libfftw3f.a)
+    endif()
+    message(STATUS "ChatTTS deps dir: ${SHERPA_ONNX_CHATTTS_DEPS_DIR}")
+    message(STATUS "ChatTTS FFTW lib: ${SHERPA_ONNX_CHATTTS_FFTW_LIB}")
+    target_include_directories(sherpa-onnx-core PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/sophon/chattts
+      ${SHERPA_ONNX_CHATTTS_DEPS_DIR}
+      ${SHERPA_ONNX_CHATTTS_DEPS_DIR}/fftw/include
+    )
+    target_link_libraries(sherpa-onnx-core ${SHERPA_ONNX_CHATTTS_FFTW_LIB})
+  endif()
 endif()
 
 if(TARGET onnxruntime)

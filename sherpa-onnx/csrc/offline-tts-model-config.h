@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include "sherpa-onnx/csrc/offline-tts-chattts-model-config.h"
 #include "sherpa-onnx/csrc/offline-tts-kitten-model-config.h"
 #include "sherpa-onnx/csrc/offline-tts-kokoro-model-config.h"
 #include "sherpa-onnx/csrc/offline-tts-matcha-model-config.h"
@@ -22,6 +23,7 @@ struct OfflineTtsModelConfig {
   OfflineTtsKokoroModelConfig kokoro;
   OfflineTtsZipvoiceModelConfig zipvoice;
   OfflineTtsKittenModelConfig kitten;
+  OfflineTtsChatTtsModelConfig chattts;
 
   int32_t num_threads = 1;
   bool debug = false;
